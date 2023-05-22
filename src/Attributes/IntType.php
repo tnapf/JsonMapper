@@ -5,7 +5,7 @@ namespace Tnapf\JsonMapper\Attributes;
 use Attribute;
 
 #[Attribute]
-class IntType extends BaseType
+class IntType implements BaseType
 {
     public function __construct(
         public readonly string $name,
