@@ -8,13 +8,9 @@ use Attribute;
 class ArrayType extends BaseType
 {
     public const STRING = 1;
-
     public const INT = 2;
-
     public const FLOAT = 3;
-
     public const OBJECT = 4;
-
     public const BOOL = 5;
 
     public function __construct(
