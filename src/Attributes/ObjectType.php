@@ -13,4 +13,9 @@ class ObjectType extends BaseType
         public readonly bool $nullable = false,
     ) {
     }
+
+    public function isType(mixed $data): bool
+    {
+        return $data instanceof $this->class;
+    }
 }

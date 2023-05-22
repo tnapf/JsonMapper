@@ -12,4 +12,9 @@ class IntType extends BaseType
         public readonly bool $nullable = false,
     ) {
     }
+
+    public function isType(mixed $data): bool
+    {
+        return is_int($data);
+    }
 }
