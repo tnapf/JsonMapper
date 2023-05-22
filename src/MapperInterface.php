@@ -1,6 +1,6 @@
 <?php
 
-namespace Tnapf\Spotify\Mapper;
+namespace Tnapf\JsonMapper;
 
 use ReflectionException;
 
