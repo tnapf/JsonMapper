@@ -23,12 +23,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Tnapf\\Jsonmapper\\": "src/"
+      "Tnapf\\JsonMapper\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Tnapf\\Jsonmapper\\Test\\": "tests/"
+      "Tnapf\\JsonMapper\\Tests\\": "tests/"
     }
   },
   "config": {
