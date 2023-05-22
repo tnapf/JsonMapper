@@ -5,7 +5,7 @@ namespace Tnapf\Jsonmapper\Attributes;
 use Attribute;
 
 #[Attribute]
-class AnyArray extends BaseType
+class AnyArray implements BaseType
 {
     public function __construct(
         public readonly string $name
