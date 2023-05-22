@@ -3,7 +3,6 @@
 namespace Tnapf\Package\Test;
 
 use PHPUnit\Framework\TestCase;
-use Tnapf\Package\ExampleClass;
 
 class ExampleTest extends TestCase
 {
