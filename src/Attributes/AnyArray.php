@@ -1,6 +1,6 @@
 <?php
 
-namespace Tnapf\Jsonmapper\Attributes;
+namespace Tnapf\JsonMapper\Attributes;
 
 use Attribute;
 
@@ -8,7 +8,8 @@ use Attribute;
 class AnyArray implements BaseType
 {
     public function __construct(
-        public readonly string $name
+        public readonly string $name,
+        public readonly bool $nullable = false
     ) {
     }
 
