@@ -81,7 +81,7 @@ class User
 
 ## Property Case Conversion
 
-Since the common json naming convention is `snake_case` and PHP's is `camelCase` you can use apply an attribute to the class to have the `snake_case` json properties routed your `camelCase` properties.
+Since the common json naming convention is `snake_case` and PHP's is `camelCase` you can use apply an attribute to the class to have the `snake_case` json properties routed to your `camelCase` properties.
 
 ```php
 use Tnapf\JsonMapper\Attributes\SnakeToCamelCase;
