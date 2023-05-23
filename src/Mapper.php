@@ -51,7 +51,7 @@ class Mapper implements MapperInterface
         }
 
         $instance->attributes = self::$attributesCache[$class] ?? [];
-        $instance->instance = new $class();
+        $instance->instance = $instance->reflection->newInstanceWithoutConstructor();
 
         $object = $instance->doMapping();
 
