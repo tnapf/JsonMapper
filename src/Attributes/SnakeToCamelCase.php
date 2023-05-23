@@ -7,13 +7,13 @@ use Attribute;
 #[Attribute]
 class SnakeToCamelCase implements CaseConversionInterface
 {
-    public function convertToCase(string $input): string
+    public function convertToCase(string $string): string
     {
-        return lcfirst(str_replace('_', '', ucwords($input, '_')));
+        return lcfirst(str_replace('_', '', ucwords($string, '_')));
     }
 
-    public function convertFromCase(string $input): string
+    public function convertFromCase(string $string): string
     {
-        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $input));
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $string));
     }
 }
