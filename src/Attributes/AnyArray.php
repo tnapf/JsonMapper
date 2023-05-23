@@ -15,10 +15,6 @@ class AnyArray implements BaseType
 
     public function isType(mixed $data): bool
     {
-        if (!is_array($data)) {
-            return false;
-        }
-
-        return true;
+        return is_array($data);
     }
 }
