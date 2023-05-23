@@ -5,17 +5,20 @@ namespace Tnapf\JsonMapper;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
-use Tnapf\Jsonmapper\Attributes\AnyArray;
+use Tnapf\JsonMapper\Attributes\AnyArray;
+use Tnapf\JsonMapper\Attributes\AnyType;
+use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
 use Tnapf\JsonMapper\Attributes\BaseType;
 use Tnapf\JsonMapper\Attributes\BoolType;
+use Tnapf\JsonMapper\Attributes\FloatType;
 use Tnapf\JsonMapper\Attributes\IntType;
+use Tnapf\JsonMapper\Attributes\ObjectArrayType;
 use Tnapf\JsonMapper\Attributes\ObjectType;
-use Tnapf\JsonMapper\Attributes\SnakeToCamelCase;
 use Tnapf\JsonMapper\Attributes\StringType;
 
 class Mapper implements MapperInterface
 {
-    protected bool $snakeToCamelCase = false;
+    protected ?CaseConversionInterface $caseConversion = null;
     protected object $instance;
     protected ReflectionClass $reflection;
 
@@ -30,14 +33,31 @@ class Mapper implements MapperInterface
     public function map(string $class, array $data): object
     {
         $instance = (new self());
-
         $instance->class = $class;
         $instance->data = $data;
         $instance->reflection = new ReflectionClass($class);
-        $instance->snakeToCamelCase = !empty($instance->reflection->getAttributes(SnakeToCamelCase::class));
+
+        if ($attributes = $instance->reflection->getAttributes(CaseConversionInterface::class, ReflectionAttribute::IS_INSTANCEOF)) {
+            if (count($attributes) > 1) {
+                throw new MapperException("{$class} has more than one case conversion attribute");
+            }
+
+            $instance->caseConversion = $attributes[0]->newInstance();
+        }
+
         $instance->instance = new $class();
 
         return $instance->doMapping();
+    }
+
+    protected function convertNameToCase(string $name): string
+    {
+        return $this?->caseConversion?->convertToCase($name) ?? $name;
+    }
+
+    protected function convertNameFromCase(string $name): string
+    {
+        return $this?->caseConversion?->convertFromCase($name) ?? $name;
     }
 
     protected function doMapping(): object
@@ -46,35 +66,47 @@ class Mapper implements MapperInterface
 
         foreach ($this->attributes as $types) {
             $attribute = $types[0];
-            $data = $this->data[$attribute->name] ?? null;
+            $data = $this->data[$this->convertNameFromCase($attribute->name)] ?? null;
 
             if ($data === null) {
-                if ($attribute->isNullable()) {
+                if ($attribute->nullable) {
                     continue;
                 }
 
-                throw new MapperException("Property {$attribute->getName()} is not nullable");
+                throw new MapperException("Property {$attribute->name} is not nullable");
             }
 
             $validType = false;
+
             foreach ($types as $attribute) {
-                if ($attribute->isType($data)) {
-                    $validType = true;
-
-                    if ($attribute instanceof ObjectType) {
-                        $data = (new self())->map($attribute->class, $data);
-                    }
-
-                    break;
+                if ($attribute instanceof ObjectType) {
+                    $data = $this->map($attribute->class, $data);
                 }
 
+                if ($attribute instanceof ObjectArrayType) {
+                    $data = array_map(
+                        fn ($item) => $this->map($attribute->class, $item),
+                        $data
+                    );
+                }
+
+                if ($attribute->isType($data)) {
+                    $validType = true;
+                    break;
+                }
             }
 
             if (!$validType) {
-                throw new MapperException("Property {$attribute->name} is not of type ".implode(', ', array_map(static fn ($type) => $type::class, $types)));
+                throw new MapperException(
+                    "Property {$attribute->name} is not of type ".
+                    implode(
+                        ', ',
+                        array_map(static fn ($type) => $type::class, $types)
+                    )
+                );
             }
 
-            $this->instance->{$this->snakeToCamelCase ? SnakeToCamelCase::snakeCaseToCamelCase($attribute->name) : $attribute->name} = $data;
+            $this->instance->{$this->convertNameToCase($attribute->name)} = $data;
         }
 
         return $this->instance;
@@ -83,9 +115,14 @@ class Mapper implements MapperInterface
     protected function fillPropertyAttributes(): void
     {
         $properties = $this->reflection->getProperties(ReflectionProperty::IS_PUBLIC);
+
         foreach ($properties as $property) {
-            $name = $this->snakeToCamelCase ? SnakeToCamelCase::camelCaseToSnakeCase($property->getName()) : $property->getName();
-            $attributes = $property->getAttributes(BaseType::class, ReflectionAttribute::IS_INSTANCEOF);
+            $attributes = array_map(
+                static fn (ReflectionAttribute $attribute) => $attribute->newInstance(),
+                $property->getAttributes(BaseType::class, ReflectionAttribute::IS_INSTANCEOF)
+            );
+
+            $name = $property->getName();
             $this->attributes[$name] = [];
 
             if ($attributes !== []) {
@@ -94,23 +131,24 @@ class Mapper implements MapperInterface
                 continue;
             }
 
-            if (method_exists($property->getType(), 'getTypes')) {
-                $types = $property->getType()->getTypes();
-            } else {
-                $types = [$property->getType()];
+            if ($property->getType() === null) {
+                $this->attributes[$property->getName()][] = new AnyType($name);
+
+                return;
             }
 
-            if ($types === null) {
-                throw new MapperException("Property {$property->getName()} has no type");
-            }
+            $types = method_exists($property->getType(), 'getTypes') ?
+                $property->getType()->getTypes() :
+                [$property->getType()];
 
             foreach ($types as $type) {
                 $this->attributes[$property->getName()][] = match ($type->getName()) {
-                    'int' => new IntType($name),
-                    'bool' => new BoolType($name),
-                    'string' => new StringType($name),
-                    'array' => new AnyArray($name),
-                    default => new ObjectType($name, $type->getName()),
+                    'int' => new IntType(name: $name, nullable: $type->allowsNull()),
+                    'bool' => new BoolType(name: $name, nullable: $type->allowsNull()),
+                    'string' => new StringType(name: $name, nullable: $type->allowsNull()),
+                    'array' => new AnyArray(name: $name, nullable: $type->allowsNull()),
+                    'float' => new FloatType(name: $name, nullable: $type->allowsNull()),
+                    default => new ObjectType(name: $name, class: $type->getName(), nullable: $type->allowsNull()),
                 };
             }
         }
