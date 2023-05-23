@@ -5,11 +5,11 @@ namespace Tnapf\JsonMapper\Attributes;
 use Attribute;
 
 #[Attribute]
-class PrimitiveArray implements BaseType
+class PrimitiveArrayType implements BaseType
 {
     public function __construct(
         public readonly string $name,
-        public readonly Primitive $type,
+        public readonly PrimitiveType $type,
         public readonly bool $nullable = false,
     ) {
     }
