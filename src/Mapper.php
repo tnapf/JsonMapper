@@ -89,19 +89,19 @@ class Mapper implements MapperInterface
 
             $validType = false;
 
-            foreach ($types as $attribute) {
-                if ($attribute instanceof ObjectType) {
-                    $data = $this->map($attribute->class, $data);
+            foreach ($types as $type) {
+                if ($type instanceof ObjectType) {
+                    $data = $this->map($type->class, $data);
                 }
 
-                if ($attribute instanceof ObjectArrayType) {
+                if ($type instanceof ObjectArrayType) {
                     $data = array_map(
-                        fn ($item) => $this->map($attribute->class, $item),
+                        fn ($item) => $this->map($type->class, $item),
                         $data
                     );
                 }
 
-                if ($attribute->isType($data)) {
+                if ($type->isType($data)) {
                     $validType = true;
                     break;
                 }
