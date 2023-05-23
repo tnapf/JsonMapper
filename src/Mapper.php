@@ -152,7 +152,7 @@ class Mapper implements MapperInterface
             if ($type === null) {
                 $this->attributes[$name][] = new AnyType($name);
 
-                return;
+                continue;
             }
 
             $types = method_exists($type, 'getTypes') ?
