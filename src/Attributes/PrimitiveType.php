@@ -1,8 +1,8 @@
 <?php
 
-namespace Tnapf\Jsonmapper\Attributes;
+namespace Tnapf\JsonMapper\Attributes;
 
-enum Primitive: string
+enum PrimitiveType: string
 {
     case STRING = 'string';
     case INT = 'int';
