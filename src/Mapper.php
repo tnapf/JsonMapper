@@ -4,7 +4,6 @@ namespace Tnapf\JsonMapper;
 
 use ReflectionAttribute;
 use ReflectionClass;
-use ReflectionProperty;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
 use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
@@ -118,7 +117,9 @@ class Mapper implements MapperInterface
                 );
             }
 
-            $this->instance->{$this->convertNameToCase($attribute->name)} = $data;
+            $camelCasePropertyName = $this->convertNameToCase($attribute->name);
+            $property = $this->reflection->getProperty($camelCasePropertyName);
+            $property->setValue($this->instance, $data);
         }
 
         return $this->instance;
@@ -130,7 +131,7 @@ class Mapper implements MapperInterface
             return;
         }
 
-        $properties = $this->reflection->getProperties(ReflectionProperty::IS_PUBLIC);
+        $properties = $this->reflection->getProperties();
 
         foreach ($properties as $property) {
             $attributes = array_map(
