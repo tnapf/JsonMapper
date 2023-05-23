@@ -12,8 +12,8 @@ class Address
     public string $city;
     public string $country;
     public int|string $zip;
-    public ?float $latitude_degrees;
+    public ?float $latitudeDegrees;
 
     #[FloatType(name: 'longitude_degrees', nullable: true)]
-    public float $longitude_degrees;
+    public float $longitudeDegrees;
 }
