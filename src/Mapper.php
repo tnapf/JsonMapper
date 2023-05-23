@@ -27,6 +27,11 @@ class Mapper implements MapperInterface
      */
     protected array $attributes;
 
+    /**
+     * @var array <class-string, BaseType[]>
+     */
+    protected static array $attributesCache = [];
+
     protected string $class;
     protected array $data;
 
@@ -45,9 +50,16 @@ class Mapper implements MapperInterface
             $instance->caseConversion = $attributes[0]->newInstance();
         }
 
+        $instance->attributes = self::$attributesCache[$class] ?? [];
         $instance->instance = new $class();
 
-        return $instance->doMapping();
+        $object = $instance->doMapping();
+
+        if (!isset(self::$attributesCache[$class])) {
+            self::$attributesCache[$class] = $instance->attributes;
+        }
+
+        return $object;
     }
 
     protected function convertNameToCase(string $name): string
@@ -114,6 +126,10 @@ class Mapper implements MapperInterface
 
     protected function fillPropertyAttributes(): void
     {
+        if ($this->attributes !== []) {
+            return;
+        }
+
         $properties = $this->reflection->getProperties(ReflectionProperty::IS_PUBLIC);
 
         foreach ($properties as $property) {
