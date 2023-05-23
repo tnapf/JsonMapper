@@ -37,7 +37,7 @@ class Mapper implements MapperInterface
 
     public function map(string $class, array $data): object
     {
-        $instance = (new self());
+        $instance = new self();
         $instance->class = $class;
         $instance->data = $data;
         $instance->reflection = new ReflectionClass($class);
