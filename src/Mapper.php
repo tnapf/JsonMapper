@@ -139,6 +139,7 @@ class Mapper implements MapperInterface
             );
 
             $name = $property->getName();
+            $type = $property->getType();
             $this->attributes[$name] = [];
 
             if ($attributes !== []) {
@@ -147,18 +148,18 @@ class Mapper implements MapperInterface
                 continue;
             }
 
-            if ($property->getType() === null) {
-                $this->attributes[$property->getName()][] = new AnyType($name);
+            if ($type === null) {
+                $this->attributes[$name][] = new AnyType($name);
 
                 return;
             }
 
-            $types = method_exists($property->getType(), 'getTypes') ?
-                $property->getType()->getTypes() :
-                [$property->getType()];
+            $types = method_exists($type, 'getTypes') ?
+                $type->getTypes() :
+                [$type];
 
             foreach ($types as $type) {
-                $this->attributes[$property->getName()][] = match ($type->getName()) {
+                $this->attributes[$name][] = match ($type->getName()) {
                     'int' => new IntType(name: $name, nullable: $type->allowsNull()),
                     'bool' => new BoolType(name: $name, nullable: $type->allowsNull()),
                     'string' => new StringType(name: $name, nullable: $type->allowsNull()),
