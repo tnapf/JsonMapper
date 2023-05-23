@@ -123,8 +123,8 @@ class MapperTest extends TestCase
 
         $mappedAddress = $this->getMapper()->map(Address::class, $address);
 
-        $this->assertTrue(!isset($mappedAddress->latitudeDegrees));
-        $this->assertTrue(!isset($mappedAddress->longitudeDegrees));
+        $this->assertFalse(isset($mappedAddress->latitudeDegrees));
+        $this->assertFalse(isset($mappedAddress->longitudeDegrees));
     }
 
     public function testMissingProperty()
