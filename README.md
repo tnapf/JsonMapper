@@ -1,6 +1,6 @@
 # Tnapf/JsonMapper
 
-A JSON Mapper (still in development)
+A JSON Mapper
 
 # Installation
 
