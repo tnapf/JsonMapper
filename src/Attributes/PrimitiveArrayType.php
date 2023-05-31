@@ -4,7 +4,7 @@ namespace Tnapf\JsonMapper\Attributes;
 
 use Attribute;
 
-#[Attribute]
+#[Attribute(Attribute::IS_REPEATABLE)]
 class PrimitiveArrayType implements BaseType
 {
     public function __construct(
