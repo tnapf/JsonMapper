@@ -3,6 +3,7 @@
 namespace Tnapf\JsonMapper\Tests;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use stdClass;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
@@ -14,6 +15,7 @@ use Tnapf\JsonMapper\Attributes\PrimitiveType;
 use Tnapf\JsonMapper\Attributes\IntType;
 use Tnapf\JsonMapper\Attributes\PrimitiveArrayType;
 use Tnapf\JsonMapper\Attributes\StringType;
+use Tnapf\JsonMapper\Tests\Fakes\AttributeDuplication;
 
 class AttributeTest extends TestCase
 {
@@ -92,7 +94,7 @@ class AttributeTest extends TestCase
                 PrimitiveType::STRING => ['test', 'test2'],
                 PrimitiveType::INT => [1, 2],
                 PrimitiveType::FLOAT => [1.52, 2.52],
-                PrimitiveType::OBJECT => [(object) ['test' => 'test'], (object) ['test2' => 'test2']],
+                PrimitiveType::OBJECT => [(object)['test' => 'test'], (object)['test2' => 'test2']],
                 PrimitiveType::BOOL => [true, false],
             };
 
@@ -107,5 +109,22 @@ class AttributeTest extends TestCase
             $this->assertTrue($primitiveType->isType($trueType));
             $this->assertFalse($primitiveType->isType($falseType));
         }
+    }
+
+    public function testAttributeRepetitionOnProperty()
+    {
+        $class = new ReflectionClass(AttributeDuplication::class);
+        $property = $class->getProperty('property');
+        $attributes = $property->getAttributes(PrimitiveArrayType::class);
+
+        $this->assertCount(2, $attributes);
+
+        $intAttribute = $attributes[0]->newInstance();
+        $this->assertEquals('property', $intAttribute->name);
+        $this->assertEquals(PrimitiveType::INT, $intAttribute->type);
+
+        $floatAttribute = $attributes[1]->newInstance();
+        $this->assertEquals('property', $floatAttribute->name);
+        $this->assertEquals(PrimitiveType::FLOAT, $floatAttribute->type);
     }
 }
