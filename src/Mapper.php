@@ -84,7 +84,7 @@ class Mapper implements MapperInterface
                     continue;
                 }
 
-                throw new MapperException("Property {$attribute->name} is not nullable");
+                throw new MapperException("Property {$attribute->name} on ".$this->instance::class.' not nullable');
             }
 
             $validType = false;
