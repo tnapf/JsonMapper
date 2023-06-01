@@ -4,7 +4,7 @@ namespace Tnapf\JsonMapper\Attributes;
 
 use Attribute;
 
-#[Attribute]
+#[Attribute(Attribute::TARGET_CLASS)]
 class SnakeToCamelCase implements CaseConversionInterface
 {
     public function convertToCase(string $string): string
