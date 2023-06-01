@@ -4,7 +4,7 @@ namespace Tnapf\JsonMapper\Attributes;
 
 use Attribute;
 
-#[Attribute]
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class IntType implements BaseType
 {
     public function __construct(
