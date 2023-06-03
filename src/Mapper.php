@@ -11,7 +11,7 @@ class Mapper
     /**
      * @template T
      *
-     * @var string-class<T> $class
+     * @var string-class<T>
      *
      * @return T
      */
