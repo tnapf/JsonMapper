@@ -8,6 +8,7 @@ class Role
 {
     public int $id;
     public string $name;
+
     #[EnumerationType('permissions', RolePermission::class)]
     public RolePermission $permissions;
 }
