@@ -3,24 +3,23 @@
 namespace Tnapf\JsonMapper\Attributes;
 
 use Attribute;
-use BackedEnum;
+use InvalidArgumentException;
 use ReflectionEnum;
-use ReflectionEnumBackedCase;
 use ReflectionException;
-use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
 use UnitEnum;
-
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class EnumerationType implements BaseType
 {
-    /** @var class-string<UnitEnum> $enum */
     public function __construct(
         public readonly string $name,
         public readonly string $enum,
         public readonly bool $caseSensitive = true,
         public readonly bool $nullable = false
     ) {
+        if (!enum_exists($this->enum)) {
+            throw new InvalidArgumentException('Enumeration does not exist or is invalid.');
+        }
     }
 
     /**

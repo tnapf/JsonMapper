@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tnapf\JsonMapper\Tests\Fakes;
 
 enum IssueCategory: string
