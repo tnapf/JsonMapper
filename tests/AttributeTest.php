@@ -19,7 +19,6 @@ use Tnapf\JsonMapper\Attributes\StringType;
 use Tnapf\JsonMapper\Tests\Fakes\IssueCategory;
 use Tnapf\JsonMapper\Tests\Fakes\IssueState;
 use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
-
 use Tnapf\JsonMapper\Tests\Fakes\AttributeDuplication;
 
 class AttributeTest extends TestCase
