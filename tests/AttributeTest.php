@@ -8,6 +8,7 @@ use stdClass;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
 use Tnapf\JsonMapper\Attributes\BoolType;
+use Tnapf\JsonMapper\Attributes\EnumerationType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
 use Tnapf\JsonMapper\Attributes\ObjectType;
 use Tnapf\JsonMapper\Attributes\FloatType;
@@ -15,6 +16,10 @@ use Tnapf\JsonMapper\Attributes\PrimitiveType;
 use Tnapf\JsonMapper\Attributes\IntType;
 use Tnapf\JsonMapper\Attributes\PrimitiveArrayType;
 use Tnapf\JsonMapper\Attributes\StringType;
+use Tnapf\JsonMapper\Tests\Fakes\IssueCategory;
+use Tnapf\JsonMapper\Tests\Fakes\IssueState;
+use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
+
 use Tnapf\JsonMapper\Tests\Fakes\AttributeDuplication;
 
 class AttributeTest extends TestCase
@@ -109,6 +114,47 @@ class AttributeTest extends TestCase
             $this->assertTrue($primitiveType->isType($trueType));
             $this->assertFalse($primitiveType->isType($falseType));
         }
+    }
+
+    public function testPureEnumerationType(): void
+    {
+        $type = new EnumerationType('issueState', IssueState::class);
+
+        $this->assertTrue($type->isType(IssueState::NEW));
+        $this->assertFalse($type->isType('IN_PROGRESS'));
+    }
+
+    public function testIntBackedEnumerationType(): void
+    {
+        $type = new EnumerationType('permission', RolePermission::class);
+
+        $this->assertTrue($type->isType(1));
+        $this->assertFalse($type->isType(5));
+    }
+
+    public function testStringBackedEnumerationType(): void
+    {
+        $type = new EnumerationType('issueCategory', IssueCategory::class);
+
+        $this->assertTrue($type->isType('general'));
+        $this->assertFalse($type->isType('INVALID'));
+    }
+
+    public function testStringBackedEnumerationTypeCaseSensitive(): void
+    {
+        $type = new EnumerationType('issueCategory', IssueCategory::class, true);
+
+        $this->assertFalse($type->isType('GENERAL'));
+        $this->assertFalse($type->isType('Bug'));
+        $this->assertFalse($type->isType('test123'));
+        $this->assertTrue($type->isType('enhancement'));
+    }
+
+    public function testEnumerationTypeInvalidData(): void
+    {
+        $type = new EnumerationType('permission', RolePermission::class);
+
+        $this->assertFalse($type->isType(new stdClass()));
     }
 
     public function testAttributeRepetitionOnProperty()

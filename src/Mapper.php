@@ -9,6 +9,7 @@ use Tnapf\JsonMapper\Attributes\AnyType;
 use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
 use Tnapf\JsonMapper\Attributes\BaseType;
 use Tnapf\JsonMapper\Attributes\BoolType;
+use Tnapf\JsonMapper\Attributes\EnumerationType;
 use Tnapf\JsonMapper\Attributes\FloatType;
 use Tnapf\JsonMapper\Attributes\IntType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
@@ -22,7 +23,7 @@ class Mapper implements MapperInterface
     protected ReflectionClass $reflection;
 
     /**
-     * @var BaseType[]
+     * @var array<string, array<array-key, BaseType>>
      */
     protected array $attributes;
 
@@ -103,6 +104,10 @@ class Mapper implements MapperInterface
 
                 if ($type->isType($data)) {
                     $validType = true;
+                    if ($type instanceof EnumerationType) {
+                        $data = $type->enum::tryFrom($data);
+                    }
+
                     break;
                 }
             }
@@ -141,9 +146,9 @@ class Mapper implements MapperInterface
 
             $name = $property->getName();
             $type = $property->getType();
-            $this->attributes[$name] = [];
 
-            if ($attributes !== []) {
+            $this->attributes[$name] = [];
+            if (!empty($attributes)) {
                 $this->attributes[$name] = [...$this->attributes[$name], ...$attributes];
 
                 continue;
