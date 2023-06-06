@@ -8,6 +8,8 @@ use Tnapf\JsonMapper\MapperException;
 use Tnapf\JsonMapper\MapperInterface;
 use Tnapf\JsonMapper\Tests\Fakes\Address;
 use Tnapf\JsonMapper\Tests\Fakes\AnyTypes;
+use Tnapf\JsonMapper\Tests\Fakes\Role;
+use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
 use Tnapf\JsonMapper\Tests\Fakes\User;
 
 class MapperTest extends TestCase
@@ -51,14 +53,18 @@ class MapperTest extends TestCase
 
         $mappedUser = $this->getMapper()->map(User::class, $user);
 
+        $this->assertInstanceOf(User::class, $mappedUser);
         $this->assertSame($user['id'], $mappedUser->id);
         $this->assertSame($user['username'], $mappedUser->username);
         $this->assertSame($user['password'], $mappedUser->password);
 
         foreach ($mappedUser->roles as $key => $role) {
+            $this->assertInstanceOf(Role::class, $role);
             $this->assertSame($user['roles'][$key]['id'], $role->id);
             $this->assertSame($user['roles'][$key]['name'], $role->name);
-            $this->assertSame($user['roles'][$key]['permissions'], $role->permissions);
+
+            $this->assertInstanceOf(RolePermission::class, $role->permissions);
+            $this->assertSame($user['roles'][$key]['permissions'], $role->permissions->value);
         }
 
         $this->assertSame($user['address']['street'], $mappedUser->address->street);

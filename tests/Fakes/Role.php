@@ -2,9 +2,12 @@
 
 namespace Tnapf\JsonMapper\Tests\Fakes;
 
+use Tnapf\JsonMapper\Attributes\EnumerationType;
+
 class Role
 {
     public int $id;
     public string $name;
-    public int $permissions;
+    #[EnumerationType('permissions', RolePermission::class)]
+    public RolePermission $permissions;
 }
