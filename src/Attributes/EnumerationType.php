@@ -12,9 +12,6 @@ use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class EnumerationType implements BaseType
 {
-    /** @var class-string<BackedEnum> */
-    public readonly string $enum;
-
     private ReflectionEnum $reflector;
 
     /**
@@ -22,11 +19,10 @@ class EnumerationType implements BaseType
      */
     public function __construct(
         public readonly string $name,
-        string $enum,
+        public readonly string $enum,
         public readonly bool $caseSensitive = true,
         public readonly bool $nullable = false
     ) {
-        $this->enum = $enum;
         if (!enum_exists($this->enum)) {
             throw new InvalidArgumentException('Enumeration does not exist or is invalid.');
         }
