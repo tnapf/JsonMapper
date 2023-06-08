@@ -8,6 +8,7 @@ use stdClass;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
 use Tnapf\JsonMapper\Attributes\BoolType;
+use Tnapf\JsonMapper\Attributes\EnumerationArrayType;
 use Tnapf\JsonMapper\Attributes\EnumerationType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
 use Tnapf\JsonMapper\Attributes\ObjectType;
@@ -16,6 +17,7 @@ use Tnapf\JsonMapper\Attributes\PrimitiveType;
 use Tnapf\JsonMapper\Attributes\IntType;
 use Tnapf\JsonMapper\Attributes\PrimitiveArrayType;
 use Tnapf\JsonMapper\Attributes\StringType;
+use Tnapf\JsonMapper\Exception\InvalidArgumentException;
 use Tnapf\JsonMapper\Tests\Fakes\IssueCategory;
 use Tnapf\JsonMapper\Tests\Fakes\IssueState;
 use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
@@ -115,38 +117,31 @@ class AttributeTest extends TestCase
         }
     }
 
-    public function testPureEnumerationType(): void
-    {
-        $type = new EnumerationType('issueState', IssueState::class);
-
-        $this->assertTrue($type->isType(IssueState::NEW));
-        $this->assertFalse($type->isType('IN_PROGRESS'));
-    }
-
     public function testIntBackedEnumerationType(): void
     {
         $type = new EnumerationType('permission', RolePermission::class);
 
-        $this->assertTrue($type->isType(1));
+        $this->assertTrue($type->isType(RolePermission::READ));
+        $this->assertFalse($type->isType(IssueCategory::INVALID));
         $this->assertFalse($type->isType(5));
     }
 
-    public function testStringBackedEnumerationType(): void
+    public function testStringBackedEnumerationTypeConversion(): void
     {
         $type = new EnumerationType('issueCategory', IssueCategory::class);
 
-        $this->assertTrue($type->isType('general'));
-        $this->assertFalse($type->isType('INVALID'));
+        $this->assertSame(IssueCategory::GENERAL, $type->convert('general'));
+        $this->assertSame(null, $type->convert('INVALID'));
     }
 
-    public function testStringBackedEnumerationTypeCaseSensitive(): void
+    public function testStringBackedEnumerationTypeCaseInsensitiveConversion(): void
     {
-        $type = new EnumerationType('issueCategory', IssueCategory::class, true);
+        $type = new EnumerationType('issueCategory', IssueCategory::class, false);
 
-        $this->assertFalse($type->isType('GENERAL'));
-        $this->assertFalse($type->isType('Bug'));
-        $this->assertFalse($type->isType('test123'));
-        $this->assertTrue($type->isType('enhancement'));
+        $this->assertSame(IssueCategory::GENERAL, $type->convert('GENERAL'));
+        $this->assertSame(IssueCategory::BUG, $type->convert('Bug'));
+        $this->assertSame(null, $type->convert('test123'));
+        $this->assertSame(IssueCategory::ENHANCEMENT, $type->convert('enhancement'));
     }
 
     public function testEnumerationTypeInvalidData(): void
@@ -154,6 +149,24 @@ class AttributeTest extends TestCase
         $type = new EnumerationType('permission', RolePermission::class);
 
         $this->assertFalse($type->isType(new stdClass()));
+    }
+
+    public function testEnumerationArrayType(): void
+    {
+        $type = new EnumerationArrayType('permissions', RolePermission::class);
+
+        $this->assertTrue($type->isType([RolePermission::READ, RolePermission::WRITE]));
+        $this->assertFalse($type->isType([1, 2, 5]));
+        $this->assertFalse($type->isType([IssueCategory::INVALID]));
+        $this->assertFalse($type->isType(1));
+    }
+
+    public function testPureEnumerationTypeIsNotSupported(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Non-backed enumerations cannot be mapped.');
+
+        new EnumerationType('issueState', IssueState::class);
     }
 
     public function testAttributeRepetitionOnProperty()
