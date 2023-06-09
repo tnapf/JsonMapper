@@ -4,6 +4,7 @@ namespace Tnapf\JsonMapper;
 
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionException;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
 use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
@@ -16,6 +17,8 @@ use Tnapf\JsonMapper\Attributes\IntType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
 use Tnapf\JsonMapper\Attributes\ObjectType;
 use Tnapf\JsonMapper\Attributes\StringType;
+use Tnapf\JsonMapper\Exception\InvalidArgumentException;
+use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
 
 class Mapper implements MapperInterface
 {
@@ -73,6 +76,11 @@ class Mapper implements MapperInterface
         return $this?->caseConversion?->convertFromCase($name) ?? $name;
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws MapperException
+     * @throws InvalidValueTypeException
+     */
     protected function doMapping(): object
     {
         $this->fillPropertyAttributes();
@@ -132,9 +140,13 @@ class Mapper implements MapperInterface
         return $this->instance;
     }
 
+    /**
+     * @throws MapperException
+     * @throws InvalidArgumentException
+     */
     protected function fillPropertyAttributes(): void
     {
-        if ($this->attributes !== []) {
+        if (!empty($this->attributes)) {
             return;
         }
 

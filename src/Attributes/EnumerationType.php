@@ -24,7 +24,7 @@ class EnumerationType implements BaseType
         public readonly bool $nullable = false
     ) {
         if (!enum_exists($this->enum)) {
-            throw new InvalidArgumentException('Enumeration does not exist or is invalid.');
+            throw new InvalidArgumentException("{$this->enum} does not exist.");
         }
 
         $this->reflector = new ReflectionEnum($this->enum);

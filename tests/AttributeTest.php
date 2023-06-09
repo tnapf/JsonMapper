@@ -18,6 +18,7 @@ use Tnapf\JsonMapper\Attributes\IntType;
 use Tnapf\JsonMapper\Attributes\PrimitiveArrayType;
 use Tnapf\JsonMapper\Attributes\StringType;
 use Tnapf\JsonMapper\Exception\InvalidArgumentException;
+use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
 use Tnapf\JsonMapper\Tests\Fakes\IssueCategory;
 use Tnapf\JsonMapper\Tests\Fakes\IssueState;
 use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
@@ -25,7 +26,7 @@ use Tnapf\JsonMapper\Tests\Fakes\AttributeDuplication;
 
 class AttributeTest extends TestCase
 {
-    public function testAnyArray()
+    public function testAnyArray(): void
     {
         $anyArray = new AnyArray(name: 'anyArray');
 
@@ -33,7 +34,7 @@ class AttributeTest extends TestCase
         $this->assertFalse($anyArray->isType('test'));
     }
 
-    public function testAnyType()
+    public function testAnyType(): void
     {
         $anyType = new AnyType(name: 'anyType');
 
@@ -41,7 +42,7 @@ class AttributeTest extends TestCase
         $this->assertTrue($anyType->isType(1));
     }
 
-    public function testBoolType()
+    public function testBoolType(): void
     {
         $boolType = new BoolType(name: 'boolType');
 
@@ -50,7 +51,7 @@ class AttributeTest extends TestCase
         $this->assertFalse($boolType->isType('test'));
     }
 
-    public function testFloatType()
+    public function testFloatType(): void
     {
         $floatType = new FloatType(name: 'floatType');
 
@@ -58,7 +59,7 @@ class AttributeTest extends TestCase
         $this->assertFalse($floatType->isType('test'));
     }
 
-    public function testIntType()
+    public function testIntType(): void
     {
         $intType = new IntType(name: 'intType');
 
@@ -66,7 +67,7 @@ class AttributeTest extends TestCase
         $this->assertFalse($intType->isType('test'));
     }
 
-    public function testObjectArray()
+    public function testObjectArray(): void
     {
         $objectArray = new ObjectArrayType(name: 'objectArray', class: stdClass::class);
 
@@ -75,7 +76,15 @@ class AttributeTest extends TestCase
         $this->assertFalse($objectArray->isType('test'));
     }
 
-    public function testObjectType()
+    public function testObjectArrayThrowsIfClassDoesNotExist(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('NonExistentClass does not exist');
+
+        new ObjectArrayType(name: 'objectArray', class: 'NonExistentClass');
+    }
+
+    public function testObjectType(): void
     {
         $objectType = new ObjectType(name: 'objectType', class: stdClass::class);
 
@@ -83,7 +92,15 @@ class AttributeTest extends TestCase
         $this->assertFalse($objectType->isType('test'));
     }
 
-    public function testStringType()
+    public function testObjectTypeThrowsIfClassDoesNotExist(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('NonExistentClass does not exist');
+
+        new ObjectType(name: 'objectType', class: 'NonExistentClass');
+    }
+
+    public function testStringType(): void
     {
         $stringType = new StringType(name: 'stringType');
 
@@ -91,7 +108,7 @@ class AttributeTest extends TestCase
         $this->assertFalse($stringType->isType(1));
     }
 
-    public function testPrimitiveArray()
+    public function testPrimitiveArray(): void
     {
         foreach (PrimitiveType::cases() as $primitive) {
             $primitiveType = new PrimitiveArrayType(name: 'primitiveType', type: $primitive);
@@ -131,7 +148,7 @@ class AttributeTest extends TestCase
         $type = new EnumerationType('issueCategory', IssueCategory::class);
 
         $this->assertSame(IssueCategory::GENERAL, $type->convert('general'));
-        $this->assertSame(null, $type->convert('INVALID'));
+        $this->assertNull($type->convert('INVALID'));
     }
 
     public function testStringBackedEnumerationTypeCaseInsensitiveConversion(): void
@@ -140,8 +157,17 @@ class AttributeTest extends TestCase
 
         $this->assertSame(IssueCategory::GENERAL, $type->convert('GENERAL'));
         $this->assertSame(IssueCategory::BUG, $type->convert('Bug'));
-        $this->assertSame(null, $type->convert('test123'));
         $this->assertSame(IssueCategory::ENHANCEMENT, $type->convert('enhancement'));
+        $this->assertNull($type->convert('test123'));
+    }
+
+    public function testEnumerationTypeThrowsIfDataTypeIsInvalid(): void
+    {
+        $this->expectException(InvalidValueTypeException::class);
+        $this->expectExceptionMessage('Expected value of type int or string, got object');
+
+        $type = new EnumerationType('issueCategory', IssueCategory::class);
+        $type->convert(new stdClass());
     }
 
     public function testEnumerationTypeInvalidData(): void
@@ -161,6 +187,40 @@ class AttributeTest extends TestCase
         $this->assertFalse($type->isType(1));
     }
 
+    public function testEnumerationArrayTypeConversion(): void
+    {
+        $type = new EnumerationArrayType('permissions', RolePermission::class);
+
+        $this->assertSame([RolePermission::READ, RolePermission::WRITE], $type->convert([1, 2]));
+        $this->assertSame([null, RolePermission::UNRESTRICTED], $type->convert([5, 4]));
+    }
+
+    public function testEnumerationArrayTypeConversionCaseSensitive(): void
+    {
+        $type = new EnumerationArrayType('issueCategory', IssueCategory::class);
+
+        $this->assertSame([IssueCategory::GENERAL, IssueCategory::BUG], $type->convert(['general', 'bug']));
+        $this->assertSame([IssueCategory::ENHANCEMENT, null], $type->convert(['enhancement', 'INVALID']));
+        $this->assertSame([null], $type->convert(['Invalid']));
+    }
+
+    public function testEnumerationArrayTypeConversionCaseInsensitive(): void
+    {
+        $type = new EnumerationArrayType('issueCategory', IssueCategory::class, false);
+
+        $this->assertSame([IssueCategory::GENERAL, IssueCategory::ENHANCEMENT], $type->convert(['GENERAL', 'enhancement']));
+        $this->assertSame([IssueCategory::ENHANCEMENT, null], $type->convert(['enhancement', 'Invalid?']));
+    }
+
+    public function testEnumerationArrayTypeThrowsOnInvalidValueType(): void
+    {
+        $this->expectException(InvalidValueTypeException::class);
+        $this->expectExceptionMessage('Expected value of type array, got string');
+
+        $type = new EnumerationArrayType('issueCategory', IssueCategory::class);
+        $type->convert('general');
+    }
+
     public function testPureEnumerationTypeIsNotSupported(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -169,7 +229,31 @@ class AttributeTest extends TestCase
         new EnumerationType('issueState', IssueState::class);
     }
 
-    public function testAttributeRepetitionOnProperty()
+    public function testPureEnumerationArrayTypeIsNotSupported(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Non-backed enumerations cannot be mapped.');
+
+        new EnumerationArrayType('issueState', IssueState::class);
+    }
+
+    public function testEnumerationTypeThrowsIfEnumDoesNotExist(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('NonExistentEnum does not exist.');
+
+        new EnumerationType(name: 'enumerationType', enum: 'NonExistentEnum');
+    }
+
+    public function testEnumerationArrayThrowsIfEnumDoesNotExist(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('NonExistentEnum does not exist.');
+
+        new EnumerationArrayType(name: 'enumerationArray', enum: 'NonExistentEnum');
+    }
+
+    public function testAttributeRepetitionOnProperty(): void
     {
         $class = new ReflectionClass(AttributeDuplication::class);
         $property = $class->getProperty('property');

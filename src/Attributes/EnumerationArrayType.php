@@ -4,8 +4,8 @@ namespace Tnapf\JsonMapper\Attributes;
 
 use Attribute;
 use BackedEnum;
-use InvalidArgumentException;
 use ReflectionEnum;
+use Tnapf\JsonMapper\Exception\InvalidArgumentException;
 use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -20,7 +20,7 @@ class EnumerationArrayType implements BaseType
         public readonly bool $nullable = false
     ) {
         if (!enum_exists($this->enum)) {
-            throw new InvalidArgumentException('Enumeration does not exist or is invalid.');
+            throw new InvalidArgumentException("{$this->enum} does not exist.");
         }
 
         $this->reflector = new ReflectionEnum($this->enum);
@@ -57,7 +57,7 @@ class EnumerationArrayType implements BaseType
     public function convert(mixed $data): array
     {
         if (!is_array($data)) {
-            throw new InvalidValueTypeException('array', gettype($data));
+            throw InvalidValueTypeException::create('array', gettype($data));
         }
 
         if ($this->caseSensitive) {
