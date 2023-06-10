@@ -5,18 +5,14 @@ namespace Tnapf\JsonMapper\Attributes;
 use Attribute;
 use BackedEnum;
 use ReflectionEnum;
-use ReflectionException;
 use Tnapf\JsonMapper\Exception\InvalidArgumentException;
 use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class EnumerationType implements BaseType
+class EnumerationArrayType implements BaseType
 {
     private ReflectionEnum $reflector;
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function __construct(
         public readonly string $name,
         public readonly string $enum,
@@ -33,40 +29,52 @@ class EnumerationType implements BaseType
         }
     }
 
-    /**
-     * @throws ReflectionException
-     * @throws InvalidValueTypeException
-     */
     public function isType(mixed $data): bool
     {
-        foreach ($this->reflector->getCases() as $case) {
-            if ($case->getValue() === $data) {
-                return true;
-            }
+        if (!is_array($data)) {
+            return false;
         }
 
-        return false;
+        $cases = $this->reflector->getCases();
+        foreach ($data as $item) {
+            foreach ($cases as $case) {
+                if ($case->getValue() === $item) {
+                    continue 2;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * @throws InvalidValueTypeException
+     *
+     * @return array<array-key, BackedEnum|null>
      */
-    public function convert(mixed $data): ?BackedEnum
+    public function convert(mixed $data): array
     {
-        if (!is_string($data) && !is_int($data)) {
-            throw InvalidValueTypeException::create('int or string', gettype($data));
+        if (!is_array($data)) {
+            throw InvalidValueTypeException::create('array', gettype($data));
         }
 
         if ($this->caseSensitive) {
-            return $this->enum::tryFrom($data);
+            return array_map($this->enum::tryFrom(...), $data);
         }
 
-        foreach ($this->reflector->getCases() as $case) {
-            if (strcasecmp($case->getBackingValue(), $data) === 0) {
-                return $case->getValue();
-            }
-        }
+        return array_map(
+            function (mixed $item): ?BackedEnum {
+                foreach ($this->reflector->getCases() as $case) {
+                    if (strcasecmp($case->getBackingValue(), $item) === 0) {
+                        return $case->getValue();
+                    }
+                }
 
-        return null;
+                return null;
+            },
+            $data
+        );
     }
 }

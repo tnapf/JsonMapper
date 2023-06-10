@@ -4,17 +4,21 @@ namespace Tnapf\JsonMapper;
 
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionException;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
 use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
 use Tnapf\JsonMapper\Attributes\BaseType;
 use Tnapf\JsonMapper\Attributes\BoolType;
+use Tnapf\JsonMapper\Attributes\EnumerationArrayType;
 use Tnapf\JsonMapper\Attributes\EnumerationType;
 use Tnapf\JsonMapper\Attributes\FloatType;
 use Tnapf\JsonMapper\Attributes\IntType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
 use Tnapf\JsonMapper\Attributes\ObjectType;
 use Tnapf\JsonMapper\Attributes\StringType;
+use Tnapf\JsonMapper\Exception\InvalidArgumentException;
+use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
 
 class Mapper implements MapperInterface
 {
@@ -72,6 +76,11 @@ class Mapper implements MapperInterface
         return $this?->caseConversion?->convertFromCase($name) ?? $name;
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws MapperException
+     * @throws InvalidValueTypeException
+     */
     protected function doMapping(): object
     {
         $this->fillPropertyAttributes();
@@ -102,11 +111,12 @@ class Mapper implements MapperInterface
                     );
                 }
 
+                if ($type instanceof EnumerationType || $type instanceof EnumerationArrayType) {
+                    $data = $type->convert($data);
+                }
+
                 if ($type->isType($data)) {
                     $validType = true;
-                    if ($type instanceof EnumerationType) {
-                        $data = $type->enum::tryFrom($data);
-                    }
 
                     break;
                 }
@@ -130,9 +140,13 @@ class Mapper implements MapperInterface
         return $this->instance;
     }
 
+    /**
+     * @throws MapperException
+     * @throws InvalidArgumentException
+     */
     protected function fillPropertyAttributes(): void
     {
-        if ($this->attributes !== []) {
+        if (!empty($this->attributes)) {
             return;
         }
 
@@ -165,13 +179,35 @@ class Mapper implements MapperInterface
                 [$type];
 
             foreach ($types as $type) {
-                $this->attributes[$name][] = match ($type->getName()) {
+                $typeName = $type->getName();
+
+                if (enum_exists($typeName)) {
+                    $this->attributes[$name][] = new EnumerationType(
+                        name: $name,
+                        enum: $typeName,
+                        nullable: $type->allowsNull()
+                    );
+
+                    continue;
+                }
+
+                if (class_exists($typeName)) {
+                    $this->attributes[$name][] = new ObjectType(
+                        name: $name,
+                        class: $typeName,
+                        nullable: $type->allowsNull()
+                    );
+
+                    continue;
+                }
+
+                $this->attributes[$name][] = match ($typeName) {
                     'int' => new IntType(name: $name, nullable: $type->allowsNull()),
                     'bool' => new BoolType(name: $name, nullable: $type->allowsNull()),
                     'string' => new StringType(name: $name, nullable: $type->allowsNull()),
                     'array' => new AnyArray(name: $name, nullable: $type->allowsNull()),
                     'float' => new FloatType(name: $name, nullable: $type->allowsNull()),
-                    default => new ObjectType(name: $name, class: $type->getName(), nullable: $type->allowsNull()),
+                    default => throw new MapperException('Unknown property type.')
                 };
             }
         }
