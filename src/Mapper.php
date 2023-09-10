@@ -207,6 +207,7 @@ class Mapper implements MapperInterface
                     'string' => new StringType(name: $name, nullable: $type->allowsNull()),
                     'array' => new AnyArray(name: $name, nullable: $type->allowsNull()),
                     'float' => new FloatType(name: $name, nullable: $type->allowsNull()),
+                    'mixed' => new AnyType(name: $name, nullable: $type->allowsNull()),
                     default => throw new MapperException('Unknown property type.')
                 };
             }
