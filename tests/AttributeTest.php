@@ -7,7 +7,9 @@ use ReflectionClass;
 use stdClass;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
+use Tnapf\JsonMapper\Attributes\ArrayCallbackType;
 use Tnapf\JsonMapper\Attributes\BoolType;
+use Tnapf\JsonMapper\Attributes\CallbackType;
 use Tnapf\JsonMapper\Attributes\EnumerationArrayType;
 use Tnapf\JsonMapper\Attributes\EnumerationType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
@@ -19,6 +21,7 @@ use Tnapf\JsonMapper\Attributes\PrimitiveArrayType;
 use Tnapf\JsonMapper\Attributes\StringType;
 use Tnapf\JsonMapper\Exception\InvalidArgumentException;
 use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
+use Tnapf\JsonMapper\Mapper;
 use Tnapf\JsonMapper\Tests\Fakes\IssueCategory;
 use Tnapf\JsonMapper\Tests\Fakes\IssueState;
 use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
@@ -26,6 +29,33 @@ use Tnapf\JsonMapper\Tests\Fakes\AttributeDuplication;
 
 class AttributeTest extends TestCase
 {
+
+    public function testCallbackType(): void
+    {
+        $callbackType = new CallbackType(
+            name: 'callbackType',
+            callback: static fn (string $value) => $value . '5',
+            isTypeCallback: static fn (mixed $value) => ($value === 'test')
+        );
+
+        $this->assertTrue($callbackType->isType('test'));
+        $this->assertFalse($callbackType->isType('test2'));
+        $this->assertSame('test5', $callbackType('test', new Mapper()));
+    }
+
+    public function testArrayCallbackType(): void
+    {
+        $arrayCallbackType = new ArrayCallbackType(
+            name: 'arrayCallbackType',
+            callback: static fn (string $value) => $value . '5',
+            isTypeCallback: static fn (mixed $value) => ($value === 'test')
+        );
+
+        $this->assertTrue($arrayCallbackType->isType(['test']));
+        $this->assertFalse($arrayCallbackType->isType(['test2']));
+        $this->assertSame(['test5'], $arrayCallbackType(['test'], new Mapper()));
+    }
+
     public function testAnyArray(): void
     {
         $anyArray = new AnyArray(name: 'anyArray');
