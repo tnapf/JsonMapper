@@ -124,7 +124,7 @@ class Mapper implements MapperInterface
 
             if (!$validType) {
                 throw new MapperException(
-                    "Property {$attribute->name} is not of type ".
+                    "Property {$attribute->name} is not of type " .
                     implode(
                         ', ',
                         array_map(static fn ($type) => $type::class, $types)
