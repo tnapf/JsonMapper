@@ -29,7 +29,6 @@ use Tnapf\JsonMapper\Tests\Fakes\AttributeDuplication;
 
 class AttributeTest extends TestCase
 {
-
     public function testCallbackType(): void
     {
         $callbackType = new CallbackType(
