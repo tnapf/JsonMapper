@@ -14,8 +14,7 @@ class ArrayCallbackType implements BaseType
         public readonly Closure $callback,
         public readonly Closure $isTypeCallback,
         public readonly bool $nullable = false
-    )
-    {
+    ) {
 
     }
 
