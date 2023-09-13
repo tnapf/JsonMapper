@@ -41,8 +41,8 @@ class ArrayCallbackType implements BaseType
     {
         $array = [];
 
-        foreach ($data as $item) {
-            $array[] = ($this->callback)($item, $mapper);
+        foreach ($data as $key => $item) {
+            $array[] = ($this->callback)($item, $key, $mapper);
         }
 
         return $array;
