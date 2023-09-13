@@ -2,7 +2,6 @@
 
 namespace Tnapf\JsonMapper\Attributes;
 
-use Attribute;
 use Tnapf\JsonMapper\MapperInterface;
 
 abstract class CallbackType implements BaseType

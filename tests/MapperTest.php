@@ -99,8 +99,8 @@ class MapperTest extends TestCase
                         'latitude_degrees' => 1.1,
                         'longitude_degrees' => 2.2,
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
 
         $mappedUser = $this->getMapper()->map(User::class, $user);
