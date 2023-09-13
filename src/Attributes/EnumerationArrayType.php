@@ -29,6 +29,11 @@ class EnumerationArrayType implements BaseType
         }
     }
 
+    public function isNullable(): bool
+    {
+        return $this->nullable;
+    }
+
     public function isType(mixed $data): bool
     {
         if (!is_array($data)) {

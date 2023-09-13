@@ -33,6 +33,11 @@ class EnumerationType implements BaseType
         }
     }
 
+    public function isNullable(): bool
+    {
+        return $this->nullable;
+    }
+
     /**
      * @throws ReflectionException
      * @throws InvalidValueTypeException
