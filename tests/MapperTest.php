@@ -49,6 +49,58 @@ class MapperTest extends TestCase
                 'latitude_degrees' => 1.1,
                 'longitude_degrees' => 2.2,
             ],
+            'friends' => [
+                [
+                    'id' => 1,
+                    'username' => ':username:',
+                    'password' => ':password:',
+                    'roles' => [
+                        [
+                            'id' => 0,
+                            'name' => ':role1:',
+                            'permissions' => 1,
+                        ],
+                        [
+                            'id' => 1,
+                            'name' => ':role2:',
+                            'permissions' => 2,
+                        ],
+                    ],
+                    'address' => [
+                        'street' => ':street:',
+                        'city' => ':city:',
+                        'country' => ':country:',
+                        'zip' => 1111,
+                        'latitude_degrees' => 1.1,
+                        'longitude_degrees' => 2.2,
+                    ],
+                ],
+                [
+                    'id' => 2,
+                    'username' => ':username:',
+                    'password' => ':password:',
+                    'roles' => [
+                        [
+                            'id' => 0,
+                            'name' => ':role1:',
+                            'permissions' => 1,
+                        ],
+                        [
+                            'id' => 1,
+                            'name' => ':role2:',
+                            'permissions' => 2,
+                        ],
+                    ],
+                    'address' => [
+                        'street' => ':street:',
+                        'city' => ':city:',
+                        'country' => ':country:',
+                        'zip' => 1111,
+                        'latitude_degrees' => 1.1,
+                        'longitude_degrees' => 2.2,
+                    ],
+                ]
+            ]
         ];
 
         $mappedUser = $this->getMapper()->map(User::class, $user);

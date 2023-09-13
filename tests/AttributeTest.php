@@ -7,11 +7,11 @@ use ReflectionClass;
 use stdClass;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
-use Tnapf\JsonMapper\Attributes\ArrayCallbackType;
 use Tnapf\JsonMapper\Attributes\BoolType;
 use Tnapf\JsonMapper\Attributes\CallbackType;
 use Tnapf\JsonMapper\Attributes\EnumerationArrayType;
 use Tnapf\JsonMapper\Attributes\EnumerationType;
+use Tnapf\JsonMapper\Attributes\NullType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
 use Tnapf\JsonMapper\Attributes\ObjectType;
 use Tnapf\JsonMapper\Attributes\FloatType;
@@ -21,7 +21,7 @@ use Tnapf\JsonMapper\Attributes\PrimitiveArrayType;
 use Tnapf\JsonMapper\Attributes\StringType;
 use Tnapf\JsonMapper\Exception\InvalidArgumentException;
 use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
-use Tnapf\JsonMapper\Mapper;
+use Tnapf\JsonMapper\MapperInterface;
 use Tnapf\JsonMapper\Tests\Fakes\IssueCategory;
 use Tnapf\JsonMapper\Tests\Fakes\IssueState;
 use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
@@ -31,28 +31,31 @@ class AttributeTest extends TestCase
 {
     public function testCallbackType(): void
     {
-        $callbackType = new CallbackType(
-            name: 'callbackType',
-            callback: static fn (string $value) => $value . '5',
-            isTypeCallback: static fn (mixed $value) => ($value === 'test')
-        );
+        $callbackType = new class ('test', true) extends CallbackType {
+            public function isType(mixed $data): bool
+            {
+                return is_int($data);
+            }
 
-        $this->assertTrue($callbackType->isType('test'));
-        $this->assertFalse($callbackType->isType('test2'));
-        $this->assertSame('test5', $callbackType('test', new Mapper()));
+            public function map(mixed $data, MapperInterface $mapper): mixed
+            {
+                return $data + 1;
+            }
+        };
+
+        $mapperStub = $this->createStub(MapperInterface::class);
+
+        $this->assertTrue($callbackType->isType(5));
+        $this->assertFalse($callbackType->isType('test'));
+        $this->assertSame(6, $callbackType->map(5, $mapperStub));
     }
 
-    public function testArrayCallbackType(): void
+    public function testNullType(): void
     {
-        $arrayCallbackType = new ArrayCallbackType(
-            name: 'arrayCallbackType',
-            callback: static fn (string $value) => $value . '5',
-            isTypeCallback: static fn (mixed $value) => ($value === 'test')
-        );
+        $nullType = new NullType(name: 'nullType');
 
-        $this->assertTrue($arrayCallbackType->isType(['test']));
-        $this->assertFalse($arrayCallbackType->isType(['test2']));
-        $this->assertSame(['test5'], $arrayCallbackType(['test'], new Mapper()));
+        $this->assertTrue($nullType->isType(null));
+        $this->assertFalse($nullType->isType('test'));
     }
 
     public function testAnyArray(): void
