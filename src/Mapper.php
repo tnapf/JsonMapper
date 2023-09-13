@@ -7,6 +7,8 @@ use ReflectionClass;
 use ReflectionException;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
+use Tnapf\JsonMapper\Attributes\ArrayCallbackType;
+use Tnapf\JsonMapper\Attributes\CallbackType;
 use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
 use Tnapf\JsonMapper\Attributes\BaseType;
 use Tnapf\JsonMapper\Attributes\BoolType;
@@ -114,6 +116,10 @@ class Mapper implements MapperInterface
 
                 if ($type instanceof EnumerationType || $type instanceof EnumerationArrayType) {
                     $data = $type->convert($data);
+                }
+
+                if ($type instanceof CallbackType || $type instanceof ArrayCallbackType) {
+                    $data = $type($data, $this);
                 }
 
                 if ($type->isType($data)) {
