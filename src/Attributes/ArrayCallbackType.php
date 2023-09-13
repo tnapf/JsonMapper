@@ -9,6 +9,10 @@ use Tnapf\JsonMapper\MapperInterface;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ArrayCallbackType implements BaseType
 {
+    /**
+     * @param Closure $callback function (mixed $data, mixed $key, MapperInterface $mapper): Array
+     * @param Closure $isTypeCallback function (mixed $data): bool
+     */
     public function __construct(
         public readonly string $name,
         public readonly Closure $callback,
