@@ -13,5 +13,8 @@ class User
     #[ObjectArrayType(name: 'roles', class: Role::class)]
     public array $roles;
 
+    #[FriendsType(name: 'friends', nullable: true)]
+    public array $friends;
+
     public Address $address;
 }
