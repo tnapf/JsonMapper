@@ -14,6 +14,7 @@ use Tnapf\JsonMapper\Attributes\EnumerationArrayType;
 use Tnapf\JsonMapper\Attributes\EnumerationType;
 use Tnapf\JsonMapper\Attributes\FloatType;
 use Tnapf\JsonMapper\Attributes\IntType;
+use Tnapf\JsonMapper\Attributes\NullType;
 use Tnapf\JsonMapper\Attributes\ObjectArrayType;
 use Tnapf\JsonMapper\Attributes\ObjectType;
 use Tnapf\JsonMapper\Attributes\StringType;
@@ -208,6 +209,7 @@ class Mapper implements MapperInterface
                     'array' => new AnyArray(name: $name, nullable: $type->allowsNull()),
                     'float' => new FloatType(name: $name, nullable: $type->allowsNull()),
                     'mixed' => new AnyType(name: $name, nullable: $type->allowsNull()),
+                    'null' => new NullType(name: $name),
                     default => throw new MapperException("Unknown property type {$typeName} on {$this->reflection->name}.")
                 };
             }
