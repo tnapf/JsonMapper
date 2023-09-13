@@ -7,7 +7,6 @@ use ReflectionClass;
 use ReflectionException;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
-use Tnapf\JsonMapper\Attributes\ArrayCallbackType;
 use Tnapf\JsonMapper\Attributes\CallbackType;
 use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
 use Tnapf\JsonMapper\Attributes\BaseType;
@@ -93,7 +92,7 @@ class Mapper implements MapperInterface
             $data = $this->data[$this->convertNameFromCase($attribute->name)] ?? null;
 
             if ($data === null) {
-                if ($attribute->nullable) {
+                if ($attribute->isNullable()) {
                     continue;
                 }
 
@@ -118,8 +117,8 @@ class Mapper implements MapperInterface
                     $data = $type->convert($data);
                 }
 
-                if ($type instanceof CallbackType || $type instanceof ArrayCallbackType) {
-                    $data = $type($data, $this);
+                if ($type instanceof CallbackType) {
+                    $data = $type->map($data, $this);
                 }
 
                 if ($type->isType($data)) {
