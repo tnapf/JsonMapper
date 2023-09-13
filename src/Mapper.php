@@ -208,7 +208,7 @@ class Mapper implements MapperInterface
                     'array' => new AnyArray(name: $name, nullable: $type->allowsNull()),
                     'float' => new FloatType(name: $name, nullable: $type->allowsNull()),
                     'mixed' => new AnyType(name: $name, nullable: $type->allowsNull()),
-                    default => throw new MapperException('Unknown property type.')
+                    default => throw new MapperException("Unknown property type {$typeName} on {$this->reflection->name}.")
                 };
             }
         }
