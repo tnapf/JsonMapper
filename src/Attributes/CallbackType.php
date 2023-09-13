@@ -3,32 +3,21 @@
 namespace Tnapf\JsonMapper\Attributes;
 
 use Attribute;
-use Closure;
 use Tnapf\JsonMapper\MapperInterface;
 
-#[Attribute(Attribute::TARGET_PROPERTY)]
-class CallbackType implements BaseType
+abstract class CallbackType implements BaseType
 {
-    /**
-     * @param Closure $callback function (mixed $data, MapperInterface $mapper): mixed
-     * @param Closure $isTypeCallback function (mixed $data): bool
-     */
     public function __construct(
         public readonly string $name,
-        public readonly Closure $callback,
-        public readonly Closure $isTypeCallback,
         public readonly bool $nullable = false
     ) {
 
     }
 
-    public function isType(mixed $data): bool
+    public function isNullable(): bool
     {
-        return ($this->isTypeCallback)($data);
+        return $this->nullable;
     }
 
-    public function __invoke(mixed $data, MapperInterface $mapper): mixed
-    {
-        return ($this->callback)($data, $mapper);
-    }
+    abstract public function map(mixed $data, MapperInterface $mapper): mixed;
 }
