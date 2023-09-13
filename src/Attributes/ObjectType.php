@@ -21,6 +21,11 @@ class ObjectType implements BaseType
         }
     }
 
+    public function isNullable(): bool
+    {
+        return $this->nullable;
+    }
+
     public function isType(mixed $data): bool
     {
         return $data instanceof $this->class;

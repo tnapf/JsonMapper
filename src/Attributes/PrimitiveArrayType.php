@@ -14,6 +14,11 @@ class PrimitiveArrayType implements BaseType
     ) {
     }
 
+    public function isNullable(): bool
+    {
+        return $this->nullable;
+    }
+
     public function isType(mixed $data): bool
     {
         $method = "is_{$this->type->value}";
