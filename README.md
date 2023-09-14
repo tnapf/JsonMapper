@@ -156,12 +156,12 @@ If you need to do something specific to map a class, you can extend the Callback
 ```php
 use Attribute;
 use ReflectionException;
-use Tnapf\JsonMapper\Attributes\CallbackType;
+use Tnapf\JsonMapper\Attributes\MappableType;
 use Tnapf\JsonMapper\MapperException;
 use Tnapf\JsonMapper\MapperInterface;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class FriendsType extends CallbackType
+class FriendsType extends MappableType
 {
     public function isType(mixed $data): bool
     {
