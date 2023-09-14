@@ -8,7 +8,6 @@ use stdClass;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
 use Tnapf\JsonMapper\Attributes\BoolType;
-use Tnapf\JsonMapper\Attributes\CallbackType;
 use Tnapf\JsonMapper\Attributes\EnumerationArrayType;
 use Tnapf\JsonMapper\Attributes\EnumerationType;
 use Tnapf\JsonMapper\Attributes\NullType;
@@ -21,33 +20,91 @@ use Tnapf\JsonMapper\Attributes\PrimitiveArrayType;
 use Tnapf\JsonMapper\Attributes\StringType;
 use Tnapf\JsonMapper\Exception\InvalidArgumentException;
 use Tnapf\JsonMapper\Exception\InvalidValueTypeException;
+use Tnapf\JsonMapper\Mapper;
 use Tnapf\JsonMapper\MapperInterface;
 use Tnapf\JsonMapper\Tests\Fakes\IssueCategory;
 use Tnapf\JsonMapper\Tests\Fakes\IssueState;
+use Tnapf\JsonMapper\Tests\Fakes\Role;
 use Tnapf\JsonMapper\Tests\Fakes\RolePermission;
 use Tnapf\JsonMapper\Tests\Fakes\AttributeDuplication;
+use Tnapf\JsonMapper\Tests\Fakes\User;
+use Tnapf\JsonMapper\Tests\Fakes\UserAssocArrayType;
 
 class AttributeTest extends TestCase
 {
     public function testCallbackType(): void
     {
-        $callbackType = new class ('test', true) extends CallbackType {
-            public function isType(mixed $data): bool
-            {
-                return is_int($data);
-            }
-
-            public function map(mixed $data, MapperInterface $mapper): mixed
-            {
-                return $data + 1;
-            }
-        };
+        $callbackType = new UserAssocArrayType('test');
 
         $mapperStub = $this->createStub(MapperInterface::class);
+        $mapper = new Mapper();
 
-        $this->assertTrue($callbackType->isType(5));
-        $this->assertFalse($callbackType->isType('test'));
-        $this->assertSame(6, $callbackType->map(5, $mapperStub));
+        $userArray = [
+            [
+                'id' => 1,
+                'username' => ':username:',
+                'password' => ':password:',
+                'roles' => [
+                    [
+                        'id' => 0,
+                        'name' => ':role1:',
+                        'permissions' => 1,
+                    ],
+                    [
+                        'id' => 1,
+                        'name' => ':role2:',
+                        'permissions' => 2,
+                    ],
+                ],
+            ],
+            [
+                'id' => 1,
+                'username' => ':username1:',
+                'password' => ':password:',
+                'roles' => [
+                    [
+                        'id' => 0,
+                        'name' => ':role1:',
+                        'permissions' => 1,
+                    ],
+                    [
+                        'id' => 1,
+                        'name' => ':role2:',
+                        'permissions' => 2,
+                    ],
+                ],
+            ],
+        ];
+
+        $user = new User();
+        $user->id = 1;
+        $user->username = ':username:';
+        $user->password = ':password:';
+        $roles = [];
+        $roles[] = new Role();
+        $roles[0]->id = 0;
+        $roles[0]->name = ':role1:';
+        $roles[0]->permissions = RolePermission::READ;
+        $roles[] = new Role();
+        $roles[1]->id = 1;
+        $roles[1]->name = ':role2:';
+        $roles[1]->permissions = RolePermission::WRITE;
+        $user->roles = $roles;
+
+        $user1 = clone $user;
+        $user1->username = ':username1:';
+
+        $mapperStub->method('map')
+            ->willReturnOnConsecutiveCalls(
+                $mapper->map(User::class, $userArray[0]),
+                $mapper->map(User::class, $userArray[1])
+            );
+
+        $mapped = $callbackType->map($userArray, $mapperStub);
+
+        $this->assertEquals([':username:' => $user, ':username1:' => $user1], $mapped);
+        $this->assertTrue($callbackType->isType($mapped));
+        $this->assertFalse($callbackType->isType([$user]));
     }
 
     public function testNullType(): void
