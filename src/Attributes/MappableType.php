@@ -4,7 +4,7 @@ namespace Tnapf\JsonMapper\Attributes;
 
 use Tnapf\JsonMapper\MapperInterface;
 
-abstract class CallbackType implements BaseType
+abstract class MappableType implements BaseType
 {
     public function __construct(
         public readonly string $name,

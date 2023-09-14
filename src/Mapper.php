@@ -7,7 +7,7 @@ use ReflectionClass;
 use ReflectionException;
 use Tnapf\JsonMapper\Attributes\AnyArray;
 use Tnapf\JsonMapper\Attributes\AnyType;
-use Tnapf\JsonMapper\Attributes\CallbackType;
+use Tnapf\JsonMapper\Attributes\MappableType;
 use Tnapf\JsonMapper\Attributes\CaseConversionInterface;
 use Tnapf\JsonMapper\Attributes\BaseType;
 use Tnapf\JsonMapper\Attributes\BoolType;
@@ -117,7 +117,7 @@ class Mapper implements MapperInterface
                     $data = $type->convert($data);
                 }
 
-                if ($type instanceof CallbackType) {
+                if ($type instanceof MappableType) {
                     $data = $type->map($data, $this);
                 }
 
