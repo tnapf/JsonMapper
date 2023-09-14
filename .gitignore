@@ -14,3 +14,5 @@ composer.phar
 
 ### PHPUnit
 /.phpunit.cache/
+cghooks.lock
+
